@@ -2,14 +2,20 @@ const Manager = require("./lib/Manager");
 const Engineer = require("./lib/Engineer");
 const Intern = require("./lib/Intern");
 const inquirer = require("inquirer");
+const util = require("util");
 const path = require("path");
 const fs = require("fs");
+const lastQU = util.promisify(lastQ)
+let cray = "";
 
 const OUTPUT_DIR = path.resolve(__dirname, "output");
 const outputPath = path.join(OUTPUT_DIR, "team.html");
 
 const render = require("./lib/htmlRenderer");
-let roleChoice = ["Manager","Intern","Engineer"]
+const roleChoice = ["Manager","Intern","Engineer"]
+
+//an Array to store employees in 
+let employees = [];
 
 // Write code to use inquirer to gather information about the development team members,
 // and to create objects for each team member (using the correct classes as blueprints!)
@@ -37,19 +43,65 @@ var e_questions = [
         } else {
             return 'Please enter a valid email';
         }
-        }
+        }  
     },
     {
       name: 'e_role',
-      type: 'checkbox',
+      type: 'list',
       message: "\nPlease select the user Role:\n",  
       choices: roleChoice
-    }
+      }
 ];
 
 
+async function askEmployeeInfo(){
+  let ans = [];
+  inquirer.prompt(e_questions)
+.then(ans = async (ans) => {
+    let  uPrompt = '';
+    //ans.e_role comes back as a single element array
+    switch (ans.e_role) {
+    case 'Manager':
+        //remove Manager from choice of roles because there is only one    
+        roleChoice.shift();
+        //and create a new variable in the array to give custom prompt
+        ans.uField = "officeNumber";
+        return ans;  
+    case "Engineer":
+       ans.uField = "github";
+       return ans;
+    case "Intern":   
+       uField = "school";
+       return ans;
+    }
+    })
+.then(ans1 = async(ans1) => lastQ(ans1))
+.then(res => {
+console.log("Final Response",res)
+})
+
+//then
+.catch(err => {console.log(err)})
+}
 
 
+
+async function lastQ(ans){
+        console.log(ans);
+
+        let v = await inquirer.prompt([{
+            type: 'input',
+            name: 'uniqueVal',
+            message: 'Please Enter ' + ans.uField
+           }])
+           .then(res => {
+            return res.uniqueVal})
+        ans[ans.uField] = v;
+        return(ans);
+        //console.log(ans);
+}
+
+askEmployeeInfo()
 
 // After the user has input all employees desired, call the `render` function (required
 // above) and pass in an array containing all employee objects; the `render` function will
