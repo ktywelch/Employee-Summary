@@ -9,10 +9,47 @@ const OUTPUT_DIR = path.resolve(__dirname, "output");
 const outputPath = path.join(OUTPUT_DIR, "team.html");
 
 const render = require("./lib/htmlRenderer");
-
+let roleChoice = ["Manager","Intern","Engineer"]
 
 // Write code to use inquirer to gather information about the development team members,
 // and to create objects for each team member (using the correct classes as blueprints!)
+
+// Questions for all Employees
+var e_questions = [
+    {
+      type: 'input',
+      name: 'e_name',
+      message: "What is the EmployeeName:",
+    },
+    {
+      type: 'input',
+      name: 'e_id',
+      message: "What is the EmployeeID:"
+    },
+    {
+      type: 'input',
+      name: 'e_email',
+      message: "What's the employee email:",
+      validate: function (e_email) {
+        valid = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(e_email)
+        if (valid) {
+            return true;
+        } else {
+            return 'Please enter a valid email';
+        }
+        }
+    },
+    {
+      name: 'e_role',
+      type: 'checkbox',
+      message: "\nPlease select the user Role:\n",  
+      choices: roleChoice
+    }
+];
+
+
+
+
 
 // After the user has input all employees desired, call the `render` function (required
 // above) and pass in an array containing all employee objects; the `render` function will
