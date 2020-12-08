@@ -21,7 +21,16 @@ var e_questions = [
     {
       type: 'input',
       name: 'e_name',
-      message: "What is the EmployeeName:",
+      message: "What is the Employee Name:",
+      validate: function (e_email) {
+        valid = /^\w+*\s\w+*+$/.test(e_name)
+        if (valid) {
+            return true;
+        } else {
+            return 'Please enter a valid name must include first and last name';
+        }
+        } 
+
     },
     {
       type: 'input',
