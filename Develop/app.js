@@ -12,6 +12,7 @@ const OUTPUT_DIR = path.resolve(__dirname, "output");
 const outputPath = path.join(OUTPUT_DIR, "team.html");
 
 const render = require("./lib/htmlRenderer");
+const { Z_BEST_COMPRESSION } = require("zlib");
 const roleChoice = ["Manager","Intern","Engineer"]
 
 //an Array to store employees in 
@@ -27,11 +28,11 @@ var e_questions = [
       name: 'e_name',
       message: "What is the EmployeeName:",
     },
-    {
-      type: 'input',
-      name: 'e_id',
-      message: "What is the EmployeeID:"
-    },
+    // {
+    //   type: 'input',
+    //   name: 'e_id',
+    //   message: "What is the EmployeeID:"
+    // },
     {
       type: 'input',
       name: 'e_email',
@@ -53,12 +54,11 @@ var e_questions = [
       }
 ];
 
-
-async function askEmployeeInfo(){
+function askEmployeeInfo(){
   let ans = [];
+  let employee = {};
   inquirer.prompt(e_questions)
 .then(ans = async (ans) => {
-    let  uPrompt = '';
     //ans.e_role comes back as a single element array
     switch (ans.e_role) {
     case 'Manager':
@@ -71,35 +71,95 @@ async function askEmployeeInfo(){
        ans.uField = "github";
        return ans;
     case "Intern":   
-       uField = "school";
+       ans.uField = "school";
        return ans;
     }
     })
-.then(ans1 = async(ans1) => lastQ(ans1))
-.then(res => {
-console.log("Final Response",res)
+.then(ans1 = async(ans1) => {
+let pop = await lastQ(ans1);
+//console.log("poop",pop);
+return pop;
 })
+    //console.log("w",w)
+//})    
 
-//then
+.then(res = async(res) => {
+console.log("Final Response",res)
+let cur_id = employees.length + 1;
+switch (res.e_role) {
+    case 'Manager':
+    employee = new Manager(res.e_name,cur_id,res.e_email,res.officeNumber);
+    employees.push(employee);
+    break;  
+    case "Engineer":
+    employee = new Engineer(res.e_name,cur_id,res.e_email,res.github);
+    employees.push(employee);
+    break; 
+    case "Intern":   
+    employee = new Intern(res.e_name,cur_id,res.e_email,res.school);
+    employees.push(employee);
+    break; 
+}
+console.log("employee",employee);
+await moreEmployees();
+})
+// .then(more =>{ 
+//     addE(); 
+//     console.log(more)
+//     askEmployeeInfo() 
+// })
+
+//.then(more => {
+  //  console.log("last timr", more)
+    // addE();
+    // if
+    // askEmployeeInfo()
+//})
 .catch(err => {console.log(err)})
 }
 
 
+async function moreEmployees(){
+    //console.log(ans);
+    inquirer.prompt([{
+        type: 'confirm',
+        name: 'askAgain',
+        message: 'Is there aonther Employee: ',
+        default: true,
+       }])
+       .then(res => {
+        console.log(res);
+        if(res.askAgain){
+            askEmployeeInfo()    
+        } else {
+        createOutput(employees);    
+        return res}
+       })
+    //console.log(ans);
+}
 
 async function lastQ(ans){
-        console.log(ans);
-
-        let v = await inquirer.prompt([{
-            type: 'input',
-            name: 'uniqueVal',
-            message: 'Please Enter ' + ans.uField
-           }])
-           .then(res => {
-            return res.uniqueVal})
-        ans[ans.uField] = v;
-        return(ans);
-        //console.log(ans);
+    let v = "";
+    await inquirer.prompt([{
+    type: 'input',
+    name: 'uniqueVal',
+    message: 'Please Enter ' + ans.uField
+    }])
+    .then(res => {
+    v = res.uniqueVal;    
+    return(ans)
+    })
+    ans[ans.uField] = v;
+    return(ans);
 }
+
+function createOutput(employees){  
+    console.log(outputPath) ;
+    fs.writeFile(outputPath, render(employees), (err) =>
+    err ? console.error(err) : console.log("Success!")
+        ); 
+}
+
 
 askEmployeeInfo()
 
