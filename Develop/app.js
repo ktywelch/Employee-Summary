@@ -155,6 +155,7 @@ async function moreEmployees(){
 
 }
 
+//Only changing first letter intentionally not considering upper or alternatives in middle of string
 function capitalizeFirstLetter(string) {
     let newString ="";
     let spString = string.split(" ");
