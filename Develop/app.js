@@ -21,9 +21,9 @@ var e_questions = [
     {
       type: 'input',
       name: 'e_name',
-      message: "What is the Employee Name:",
-      validate: function (e_email) {
-        valid = /^\w+*\s\w+*+$/.test(e_name)
+      message: "Enter Employee Name:",
+      validate: function (e_name) {
+        valid = /([a-zA-Z]{2,}\s[a-zA-Z]{1,}'?-?[a-zA-Z]{2,}\s?([a-zA-Z]{1,})?)/.test(e_name)
         if (valid) {
             return true;
         } else {
@@ -81,15 +81,17 @@ return pop;
 .then(res = async(res) => {
 // This how we start getting the employee name just add one to the array    
 let cur_id = employees.length + 1;
+// normalizing the name
+let nm =capitalizeFirstLetter(res.e_name)
 switch (res.e_role) {
     case 'Manager':
-    employee = new Manager(res.e_name,cur_id,res.e_email,res.officeNumber);
+    employee = new Manager(nm,cur_id,res.e_email,res.officeNumber);
     break;  
     case 'Engineer':
-    employee = new Engineer(res.e_name,cur_id,res.e_email,res.github);
+    employee = new Engineer(nm,cur_id,res.e_email,res.github);
     break; 
     case 'Intern':   
-    employee = new Intern(res.e_name,cur_id,res.e_email,res.school);
+    employee = new Intern(nm,cur_id,res.e_email,res.school);
     break; 
 }
 employees.push(employee);
@@ -99,9 +101,44 @@ await moreEmployees();
 .catch(err => {console.log(err)})
 }
 
+// This function is a custom question for each time the last employee question
+async function lastQ(ans){
+    let var1 = '',question=[];
+    if (ans.e_role === 'Manager'){
+        question = {
+            type: 'input',
+            name: 'uniqueVal',
+            message: `Please Enter the information for the office number using the format Bld#-Room# field:`,
+            validate: function (uniqueVal) {
+                valid = /([0-9]{1,}-[0-9]{1,})/.test(uniqueVal)
+                if (valid) {
+                    return true;
+                } else {
+                    return 'Please enter a valid office number should use format Bld#-Room#';
+                }
+                }  
+            }
+    } else { 
+        question = {
+            type: 'input',
+            name: 'uniqueVal',
+            message: `Please Enter the information for the ${ans.uField} field: ` 
+        }
+    }
+    
+
+    await inquirer.prompt([question])
+    .then(res => {
+    var1 = res.uniqueVal;    
+    return(ans)
+    })
+    ans[ans.uField] = var1;
+    return(ans);
+}
+
 //Function to ask if there are more Employees - if not it renders the output
 async function moreEmployees(){
-    //console.log(ans);
+    
     inquirer.prompt([{
         type: 'confirm',
         name: 'askAgain',
@@ -118,23 +155,20 @@ async function moreEmployees(){
 
 }
 
-// This function is a custom question for each time the last employee question
-async function lastQ(ans){
-    let var1 = "";
-    await inquirer.prompt([{
-    type: 'input',
-    name: 'uniqueVal',
-    message: `Please Enter the information for the ${ans.uField} field: ` 
-    }])
-    .then(res => {
-    var1 = res.uniqueVal;    
-    return(ans)
-    })
-    ans[ans.uField] = var1;
-    return(ans);
+function capitalizeFirstLetter(string) {
+    let newString ="";
+    let spString = string.split(" ");
+    for (let i=0; i< spString.length; i++ ){
+        let string1 =  spString[i];
+        let string2 = string1.charAt(0).toUpperCase() + string1.slice(1);
+        newString += string2 + " ";
+    }       
+    return newString;
 }
 
+//This Function creates the output to ./output/team.html
 function createOutput(employees){  
+    console.clear();
     fs.writeFile(outputPath, render(employees), (err) =>
     err ? console.error(err) : console.log(`File Successfully written to ${outputPath}`)
         ); 
